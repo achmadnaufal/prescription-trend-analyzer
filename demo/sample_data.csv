@@ -1,0 +1,21 @@
+month,year,drug_name,generic_name,therapeutic_class,region,prescriptions_count,total_units,avg_days_supply,new_rx_count,refill_count,market_share_pct
+1,2024,Lipitor,atorvastatin,Statins,Northeast,12450,373500,30,2490,9960,18.3
+2,2024,Lipitor,atorvastatin,Statins,Northeast,12820,384600,30,2564,10256,18.7
+3,2024,Lipitor,atorvastatin,Statins,Northeast,13100,393000,30,2620,10480,19.1
+4,2024,Lipitor,atorvastatin,Statins,Northeast,13450,403500,30,2690,10760,19.4
+1,2024,Metformin,metformin,Antidiabetics,Midwest,21300,639000,30,4260,17040,31.2
+2,2024,Metformin,metformin,Antidiabetics,Midwest,21750,652500,30,4350,17400,31.6
+3,2024,Metformin,metformin,Antidiabetics,Midwest,22100,663000,30,4420,17680,32.0
+4,2024,Metformin,metformin,Antidiabetics,Midwest,22600,678000,30,4520,18080,32.5
+1,2024,Lisinopril,lisinopril,ACE Inhibitors,South,18700,561000,30,3740,14960,27.4
+2,2024,Lisinopril,lisinopril,ACE Inhibitors,South,19100,573000,30,3820,15280,27.9
+3,2024,Lisinopril,lisinopril,ACE Inhibitors,South,19500,585000,30,3900,15600,28.3
+4,2024,Lisinopril,lisinopril,ACE Inhibitors,South,20100,603000,30,4020,16080,28.9
+1,2024,Synthroid,levothyroxine,Thyroid Agents,West,9800,294000,30,1960,7840,14.4
+2,2024,Synthroid,levothyroxine,Thyroid Agents,West,9950,298500,30,1990,7960,14.5
+3,2024,Synthroid,levothyroxine,Thyroid Agents,West,10200,306000,30,2040,8160,14.8
+4,2024,Synthroid,levothyroxine,Thyroid Agents,West,10450,313500,30,2090,8360,15.1
+1,2024,Norvasc,amlodipine,Calcium Channel Blockers,Northeast,8200,246000,30,1640,6560,12.1
+2,2024,Norvasc,amlodipine,Calcium Channel Blockers,Northeast,8400,252000,30,1680,6720,12.3
+3,2024,Norvasc,amlodipine,Calcium Channel Blockers,Northeast,8650,259500,30,1730,6920,12.6
+4,2024,Norvasc,amlodipine,Calcium Channel Blockers,Northeast,8900,267000,30,1780,7120,12.9
