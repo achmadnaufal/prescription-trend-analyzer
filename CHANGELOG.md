@@ -1,9 +1,29 @@
 # Changelog
 
-## [0.2.0] - 2026-04-15
+## [0.2.0] - 2026-04-16
+
 ### Added
-- Unit tests with pytest
-- Sample data for demo purposes
-- Comprehensive docstrings
-- Input validation and edge case handling
-- Improved README with usage examples
+- **Forecasting** (`RxTrendAnalyzer.forecast`): per-drug linear regression projections for any number of future periods, with graceful handling of insufficient data.
+- **Visualization preparation** (`prepare_trend_chart_data`, `prepare_market_share_chart_data`): produces chart-ready dicts (labels + series arrays) compatible with Matplotlib, Plotly, and Vega-Altair.
+- **`summary_by_drug`**: aggregates total, mean, min, max, and period count per drug across all time periods.
+- **`filter_by_date_range`**: slice datasets to an inclusive `(year, month)` window without requiring a parsed date column.
+- **`_linear_forecast` helper**: standalone OLS extrapolation utility.
+- **`_advance_months` helper**: calendar-aware month arithmetic that correctly handles year-boundary crossings.
+- **`tests/test_forecasting.py`**: 14 focused tests covering the forecast pipeline and its helpers.
+- **`tests/test_visualization.py`**: 20 focused tests covering chart data prep, market share snapshot, summary, and date-range filtering.
+- Expanded `demo/sample_data.csv` to 54 rows covering 3 drugs across 18 months (Jan 2024 – Jun 2025) with columns: `date`, `product_name`, `therapeutic_area`, `region`, `prescription_volume`, `market_share_pct`, `physician_count`.
+
+### Improved
+- **Docstrings**: all public methods now have full Args/Returns/Raises documentation.
+- **Type hints**: complete annotations on all functions, including return types.
+- **Input validation**: additional guards in `analyze()` (division-by-zero safety when DataFrame has 0 rows after preprocessing), `forecast()`, `filter_by_date_range()`, and both chart-data helpers.
+- **Immutability**: all transformation methods confirmed to return new DataFrames without mutating the caller's data; enforced in tests.
+- **`REQUIRED_COLUMNS`** changed to `frozenset` for hashability.
+- README updated with badges, "Quick Start", example code, "Sample Output", "Project Structure", and "Running Tests" sections.
+
+## [0.1.0] - 2026-04-15
+
+### Added
+- Initial release with data loading, validation, preprocessing, MoM/YoY growth, market share, moving average, and filtering helpers.
+- Unit tests with pytest.
+- Sample data for demo purposes.

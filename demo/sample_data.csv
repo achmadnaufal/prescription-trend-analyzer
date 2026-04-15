@@ -1,21 +1,55 @@
-month,year,drug_name,generic_name,therapeutic_class,region,prescriptions_count,total_units,avg_days_supply,new_rx_count,refill_count,market_share_pct
-1,2024,Lipitor,atorvastatin,Statins,Northeast,12450,373500,30,2490,9960,18.3
-2,2024,Lipitor,atorvastatin,Statins,Northeast,12820,384600,30,2564,10256,18.7
-3,2024,Lipitor,atorvastatin,Statins,Northeast,13100,393000,30,2620,10480,19.1
-4,2024,Lipitor,atorvastatin,Statins,Northeast,13450,403500,30,2690,10760,19.4
-1,2024,Metformin,metformin,Antidiabetics,Midwest,21300,639000,30,4260,17040,31.2
-2,2024,Metformin,metformin,Antidiabetics,Midwest,21750,652500,30,4350,17400,31.6
-3,2024,Metformin,metformin,Antidiabetics,Midwest,22100,663000,30,4420,17680,32.0
-4,2024,Metformin,metformin,Antidiabetics,Midwest,22600,678000,30,4520,18080,32.5
-1,2024,Lisinopril,lisinopril,ACE Inhibitors,South,18700,561000,30,3740,14960,27.4
-2,2024,Lisinopril,lisinopril,ACE Inhibitors,South,19100,573000,30,3820,15280,27.9
-3,2024,Lisinopril,lisinopril,ACE Inhibitors,South,19500,585000,30,3900,15600,28.3
-4,2024,Lisinopril,lisinopril,ACE Inhibitors,South,20100,603000,30,4020,16080,28.9
-1,2024,Synthroid,levothyroxine,Thyroid Agents,West,9800,294000,30,1960,7840,14.4
-2,2024,Synthroid,levothyroxine,Thyroid Agents,West,9950,298500,30,1990,7960,14.5
-3,2024,Synthroid,levothyroxine,Thyroid Agents,West,10200,306000,30,2040,8160,14.8
-4,2024,Synthroid,levothyroxine,Thyroid Agents,West,10450,313500,30,2090,8360,15.1
-1,2024,Norvasc,amlodipine,Calcium Channel Blockers,Northeast,8200,246000,30,1640,6560,12.1
-2,2024,Norvasc,amlodipine,Calcium Channel Blockers,Northeast,8400,252000,30,1680,6720,12.3
-3,2024,Norvasc,amlodipine,Calcium Channel Blockers,Northeast,8650,259500,30,1730,6920,12.6
-4,2024,Norvasc,amlodipine,Calcium Channel Blockers,Northeast,8900,267000,30,1780,7120,12.9
+date,product_name,therapeutic_area,region,prescription_volume,market_share_pct,physician_count
+2024-01-01,Lipitor,Cardiovascular,Northeast,12450,18.3,4120
+2024-02-01,Lipitor,Cardiovascular,Northeast,12820,18.7,4205
+2024-03-01,Lipitor,Cardiovascular,Northeast,13100,19.1,4310
+2024-04-01,Lipitor,Cardiovascular,Northeast,13450,19.4,4390
+2024-05-01,Lipitor,Cardiovascular,Northeast,13780,19.7,4455
+2024-06-01,Lipitor,Cardiovascular,Northeast,14050,20.1,4520
+2024-07-01,Lipitor,Cardiovascular,Northeast,14300,20.3,4590
+2024-08-01,Lipitor,Cardiovascular,Northeast,14560,20.6,4640
+2024-09-01,Lipitor,Cardiovascular,Northeast,14820,20.9,4710
+2024-10-01,Lipitor,Cardiovascular,Northeast,15100,21.2,4770
+2024-11-01,Lipitor,Cardiovascular,Northeast,15350,21.5,4830
+2024-12-01,Lipitor,Cardiovascular,Northeast,15600,21.8,4900
+2025-01-01,Lipitor,Cardiovascular,Northeast,15950,22.1,4970
+2025-02-01,Lipitor,Cardiovascular,Northeast,16200,22.4,5030
+2025-03-01,Lipitor,Cardiovascular,Northeast,16480,22.7,5100
+2025-04-01,Lipitor,Cardiovascular,Northeast,16750,23.0,5160
+2025-05-01,Lipitor,Cardiovascular,Northeast,17020,23.3,5220
+2025-06-01,Lipitor,Cardiovascular,Northeast,17300,23.6,5290
+2024-01-01,Metformin,Endocrinology,Midwest,21300,31.2,7850
+2024-02-01,Metformin,Endocrinology,Midwest,21750,31.6,7940
+2024-03-01,Metformin,Endocrinology,Midwest,22100,32.0,8020
+2024-04-01,Metformin,Endocrinology,Midwest,22600,32.5,8110
+2024-05-01,Metformin,Endocrinology,Midwest,23050,32.9,8200
+2024-06-01,Metformin,Endocrinology,Midwest,23500,33.3,8290
+2024-07-01,Metformin,Endocrinology,Midwest,23900,33.7,8370
+2024-08-01,Metformin,Endocrinology,Midwest,24350,34.1,8450
+2024-09-01,Metformin,Endocrinology,Midwest,24800,34.5,8540
+2024-10-01,Metformin,Endocrinology,Midwest,25200,34.8,8620
+2024-11-01,Metformin,Endocrinology,Midwest,25600,35.2,8700
+2024-12-01,Metformin,Endocrinology,Midwest,26000,35.6,8780
+2025-01-01,Metformin,Endocrinology,Midwest,26400,35.9,8860
+2025-02-01,Metformin,Endocrinology,Midwest,26850,36.3,8940
+2025-03-01,Metformin,Endocrinology,Midwest,27200,36.6,9010
+2025-04-01,Metformin,Endocrinology,Midwest,27600,36.9,9090
+2025-05-01,Metformin,Endocrinology,Midwest,28000,37.2,9170
+2025-06-01,Metformin,Endocrinology,Midwest,28400,37.5,9250
+2024-01-01,Lisinopril,Cardiovascular,South,18700,27.4,6300
+2024-02-01,Lisinopril,Cardiovascular,South,19100,27.9,6380
+2024-03-01,Lisinopril,Cardiovascular,South,19500,28.3,6460
+2024-04-01,Lisinopril,Cardiovascular,South,20100,28.9,6560
+2024-05-01,Lisinopril,Cardiovascular,South,20600,29.4,6640
+2024-06-01,Lisinopril,Cardiovascular,South,21000,29.8,6720
+2024-07-01,Lisinopril,Cardiovascular,South,21400,30.2,6800
+2024-08-01,Lisinopril,Cardiovascular,South,21900,30.7,6890
+2024-09-01,Lisinopril,Cardiovascular,South,22300,31.1,6970
+2024-10-01,Lisinopril,Cardiovascular,South,22800,31.5,7060
+2024-11-01,Lisinopril,Cardiovascular,South,23200,31.9,7140
+2024-12-01,Lisinopril,Cardiovascular,South,23700,32.3,7230
+2025-01-01,Lisinopril,Cardiovascular,South,24100,32.7,7310
+2025-02-01,Lisinopril,Cardiovascular,South,24500,33.0,7390
+2025-03-01,Lisinopril,Cardiovascular,South,24900,33.4,7470
+2025-04-01,Lisinopril,Cardiovascular,South,25400,33.8,7560
+2025-05-01,Lisinopril,Cardiovascular,South,25800,34.1,7630
+2025-06-01,Lisinopril,Cardiovascular,South,26200,34.5,7710
