@@ -67,6 +67,72 @@ south_df    = analyzer.filter_by_region(df, "South")
 window_df   = analyzer.filter_by_date_range(df, 2024, 1, 2024, 6)
 ```
 
+## New: Anomaly Detector
+
+`src/anomaly_detector.py` flags unusual prescription volume observations per drug using two complementary statistical methods — robust z-score (median + MAD) and Tukey IQR fences — both of which are resistant to the outliers they are detecting.
+
+### Step-by-step usage
+
+**1. Load and preprocess data as usual**
+
+```python
+from src.main import RxTrendAnalyzer
+
+analyzer = RxTrendAnalyzer()
+df = analyzer.load_data("demo/sample_data.csv")
+analyzer.validate(df)
+df = analyzer.preprocess(df)
+```
+
+**2. Rename column if needed** (the detector defaults to `prescriptions_count`)
+
+```python
+# demo/sample_data.csv uses "prescription_volume" after preprocessing
+df = df.rename(columns={"prescription_volume": "prescriptions_count"})
+```
+
+**3. Run anomaly detection**
+
+```python
+from src.anomaly_detector import detect_anomalies
+
+result = detect_anomalies(
+    df,
+    value_col="prescriptions_count",  # numeric column to inspect
+    group_col="drug_name",            # analyse each drug independently
+    method="both",                    # "zscore", "iqr", or "both"
+    z_threshold=3.0,                  # robust z-score cutoff
+    iqr_k=1.5,                        # Tukey fence multiplier
+    min_periods=4,                    # skip groups with too few rows
+)
+```
+
+**4. Inspect flagged rows**
+
+```python
+anomalies = result[result["is_anomaly"]]
+print(anomalies[["drug_name", "date", "prescriptions_count",
+                  "anomaly_score", "anomaly_rationale"]])
+```
+
+**5. Tune sensitivity**
+
+```python
+# More sensitive: flag milder deviations
+result_sensitive = detect_anomalies(df, z_threshold=2.0, iqr_k=1.0)
+
+# Less sensitive: only extreme spikes/drops
+result_strict = detect_anomalies(df, z_threshold=4.0, iqr_k=3.0)
+```
+
+**Added columns in the returned DataFrame:**
+
+| Column | Type | Description |
+|---|---|---|
+| `is_anomaly` | `bool` | `True` when the row is flagged |
+| `anomaly_score` | `float` | Absolute robust z-score (higher = more unusual) |
+| `anomaly_rationale` | `str \| None` | Human-readable explanation for flagged rows |
+
 ## Example Code
 
 ### Trend Chart Data
@@ -165,8 +231,9 @@ df.to_csv("data/synthetic_300.csv", index=False)
 prescription-trend-analyzer/
 ├── src/
 │   ├── __init__.py
-│   ├── main.py             # Core analysis, forecasting, and viz-prep logic
-│   └── data_generator.py   # Synthetic data generator
+│   ├── main.py                 # Core analysis, forecasting, and viz-prep logic
+│   ├── anomaly_detector.py     # Robust z-score / IQR anomaly flagging
+│   └── data_generator.py       # Synthetic data generator
 ├── tests/
 │   ├── __init__.py
 │   ├── test_analyzer.py    # Validation, preprocessing, growth, market share, MA
@@ -205,6 +272,7 @@ All tests are organized into focused modules:
 | `test_analyzer.py` | Validation, preprocessing, MoM/YoY growth, market share, moving average, filtering, end-to-end pipeline |
 | `test_forecasting.py` | Linear forecast helper, calendar month arithmetic, `forecast()` happy paths and edge cases |
 | `test_visualization.py` | Trend chart data prep, market share chart data, `summary_by_drug()`, date-range filtering |
+| `test_anomaly_detector.py` | Spike detection, immutability, determinism, flat/zero/short series, multi-drug grouping, all method variants |
 
 ## License
 

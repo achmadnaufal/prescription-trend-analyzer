@@ -1,5 +1,12 @@
 # Changelog
 
+## [Unreleased] - 2026-04-17
+
+### Added
+- **Anomaly Detector** (`src/anomaly_detector.py`): flags unusual prescription volume observations per drug using robust z-score (median + MAD) and Tukey IQR fences, with configurable sensitivity (`z_threshold`, `iqr_k`), per-group independent analysis, human-readable `anomaly_rationale` strings, and graceful handling of flat series, all-zero series, and groups with insufficient data.
+- **`tests/test_anomaly_detector.py`**: 17 pytest tests covering spike detection, immutability, determinism, flat/zero/short series edge cases, multi-drug grouping independence, rationale population, all three method variants (`zscore`, `iqr`, `both`), and invalid-input guards.
+- README "New: Anomaly Detector" section with step-by-step usage, sensitivity tuning guide, and output column reference.
+
 ## [0.2.0] - 2026-04-16
 
 ### Added
