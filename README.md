@@ -133,6 +133,62 @@ result_strict = detect_anomalies(df, z_threshold=4.0, iqr_k=3.0)
 | `anomaly_score` | `float` | Absolute robust z-score (higher = more unusual) |
 | `anomaly_rationale` | `str \| None` | Human-readable explanation for flagged rows |
 
+## New: Trend Change-Point Detector
+
+`src/changepoint_detector.py` locates the single most likely point in time at which a prescription volume series changes its underlying trend (e.g. generic launch, new clinical guideline, supply shock). It uses a piecewise-linear regression scan that selects the split index minimising combined sum of squared residuals (SSR) and reports an SSR-improvement ratio against a single-line baseline so callers can decide significance.
+
+### Step-by-step usage
+
+**1. Load and preprocess data as usual**
+
+```python
+from src.main import RxTrendAnalyzer
+
+analyzer = RxTrendAnalyzer()
+df = analyzer.load_data("demo/sample_data.csv")
+analyzer.validate(df)
+df = analyzer.preprocess(df)
+df = df.rename(columns={"prescription_volume": "prescriptions_count"})
+```
+
+**2. Run change-point detection across all drugs**
+
+```python
+from src.changepoint_detector import detect_change_points
+
+report = detect_change_points(
+    df,
+    value_col="prescriptions_count",
+    group_col="drug_name",
+    date_col="date",
+    min_segment=3,        # >=3 points required on each side of the split
+    min_improvement=0.10, # split must explain 10% more variance than a line
+)
+print(report[report["is_significant"]])
+```
+
+**3. Inspect a single series directly**
+
+```python
+from src.changepoint_detector import detect_change_point
+
+series = [10, 11, 9, 10, 11, 10, 20, 30, 40, 50, 60]
+result = detect_change_point(series, min_segment=3)
+print(result.index, result.slope_before, result.slope_after,
+      result.improvement_ratio, result.is_significant)
+```
+
+**Returned columns from `detect_change_points`:**
+
+| Column | Type | Description |
+|---|---|---|
+| `group` | `str` | Group key (drug name) or `"_all_"` when grouping is disabled |
+| `index` | `int \| None` | Position of the first post-change observation |
+| `improvement_ratio` | `float \| None` | `1 - SSR_split / SSR_single`; higher = stronger break |
+| `slope_before` / `slope_after` | `float` | OLS slopes for the two segments |
+| `intercept_before` / `intercept_after` | `float` | OLS intercepts for the two segments |
+| `is_significant` | `bool` | `True` when `improvement_ratio >= min_improvement` |
+
 ## Example Code
 
 ### Trend Chart Data
@@ -233,6 +289,7 @@ prescription-trend-analyzer/
 │   ├── __init__.py
 │   ├── main.py                 # Core analysis, forecasting, and viz-prep logic
 │   ├── anomaly_detector.py     # Robust z-score / IQR anomaly flagging
+│   ├── changepoint_detector.py # Piecewise-linear trend change-point detector
 │   └── data_generator.py       # Synthetic data generator
 ├── tests/
 │   ├── __init__.py
@@ -273,6 +330,7 @@ All tests are organized into focused modules:
 | `test_forecasting.py` | Linear forecast helper, calendar month arithmetic, `forecast()` happy paths and edge cases |
 | `test_visualization.py` | Trend chart data prep, market share chart data, `summary_by_drug()`, date-range filtering |
 | `test_anomaly_detector.py` | Spike detection, immutability, determinism, flat/zero/short series, multi-drug grouping, all method variants |
+| `test_changepoint_detector.py` | Piecewise-linear break detection, perfectly linear series, NaN handling, non-monotonic dates, multi-group grouping, validation guards |
 
 ## License
 

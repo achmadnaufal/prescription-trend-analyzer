@@ -1,5 +1,15 @@
 # Changelog
 
+## [Unreleased] - 2026-04-18
+
+### Added
+- **Trend Change-Point Detector** (`src/changepoint_detector.py`): locates the single most likely trend break in a prescription volume series via a piecewise-linear regression scan, fitting two OLS segments at every legal split index and selecting the one that minimises combined SSR. Reports an SSR-improvement ratio against a single-line baseline so callers can decide significance via the configurable `min_improvement` threshold.
+- **`detect_change_points` DataFrame helper**: runs the detector on every group (e.g. per drug), preserving immutability of the caller's DataFrame, sorting each group by an optional `date_col`, and dropping NaN gaps before evaluation.
+- **`ChangePointResult` dataclass**: frozen, JSON-friendly result container with `index`, `improvement_ratio`, `slope_before`, `slope_after`, `intercept_before`, `intercept_after`, and `is_significant` fields.
+- **`tests/test_changepoint_detector.py`**: 19 pytest tests covering happy-path detection, single-point and too-short series, all-zero and perfectly linear series, NaN-in-series guard, non-monotonic date inputs, multi-drug independence, immutability, and validation guards (`min_segment`, `min_improvement`, missing columns, empty DataFrame).
+- README "New: Trend Change-Point Detector" section with step-by-step usage and output column reference.
+- Re-exported the new public API from `src/__init__.py` for ergonomic top-level imports.
+
 ## [Unreleased] - 2026-04-17
 
 ### Added
