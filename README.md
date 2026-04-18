@@ -189,6 +189,64 @@ print(result.index, result.slope_before, result.slope_after,
 | `intercept_before` / `intercept_after` | `float` | OLS intercepts for the two segments |
 | `is_significant` | `bool` | `True` when `improvement_ratio >= min_improvement` |
 
+## New: Seasonality & Period-over-Period Growth
+
+Two helpers in `src/seasonality.py` complete the trend toolkit: classical
+additive/multiplicative seasonal decomposition and lag-based growth
+computation (MoM, QoQ, YoY, or any integer lag).
+
+### Seasonal decomposition
+
+```python
+import pandas as pd
+from src.seasonality import seasonal_decompose_series
+
+df = pd.read_csv("demo/sample_data.csv", parse_dates=["date"])
+lipitor = (
+    df[df["product_name"] == "Lipitor"]
+    .sort_values("date")
+    .set_index("date")["prescription_volume"]
+)
+
+decomp = seasonal_decompose_series(lipitor, period=12, model="additive")
+print(decomp.head())
+#             observed    trend  seasonal       resid
+# 2024-01-01   12450.0      NaN  -103.333         NaN
+# 2024-02-01   12820.0      NaN   -41.667         NaN
+# ...
+```
+
+Edge cases handled:
+
+- Series shorter than `2 * period` raises `SeasonalityError`.
+- Isolated NaNs are forward/back-filled before decomposition.
+- Multiplicative mode rejects non-positive values.
+
+### Period-over-period growth
+
+```python
+from src.seasonality import period_over_period_growth
+
+mom = period_over_period_growth(
+    df,
+    value_col="prescription_volume",
+    group_col="product_name",
+    date_col="date",
+    lag="mom",            # alias for lag=1
+    output="pct",         # "pct" | "abs" | "ratio"
+)
+yoy = period_over_period_growth(
+    df, value_col="prescription_volume",
+    group_col="product_name", date_col="date",
+    lag="yoy",            # alias for lag=12
+)
+```
+
+The helper groups by `product_name`, sorts each group by `date`, then
+computes growth independently per group.  Rows without a valid lag
+(first N rows per group, or rows where the previous value is zero)
+receive `NaN`.
+
 ## Example Code
 
 ### Trend Chart Data

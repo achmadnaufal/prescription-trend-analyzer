@@ -1,5 +1,33 @@
 # Changelog
 
+All notable changes to this project will be documented in this file.
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased] - 2026-04-19
+
+### Added
+- **Seasonality module** (`src/seasonality.py`):
+  - `seasonal_decompose_series` - validated wrapper around
+    `statsmodels.tsa.seasonal.seasonal_decompose` that returns a tidy
+    `observed / trend / seasonal / resid` DataFrame, forward/back-fills
+    isolated NaNs, enforces `len(series) >= 2 * period`, and rejects
+    non-positive values for multiplicative decomposition.
+  - `period_over_period_growth` - per-group lag-based growth with
+    string aliases (`"mom"`, `"qoq"`, `"yoy"`, `"wow"`) and three
+    output modes (`pct`, `abs`, `ratio`).  Handles zero-denominator
+    rows as NaN, respects immutability, and sorts non-monotonic
+    dates within each group before computing the lag.
+  - `SeasonalityError` custom exception for all validation failures.
+- **`tests/test_seasonality.py`**: 21 pytest cases covering
+  decomposition shape, NaN filling, short-series guards, bad-input
+  rejection, MoM/YoY/abs/ratio variants, zero-previous handling,
+  multi-drug group isolation, immutability, and non-monotonic date
+  sorting.
+- README "New: Seasonality & Period-over-Period Growth" section with
+  runnable examples.
+- Re-exported the new public API from `src/__init__.py`.
+
 ## [Unreleased] - 2026-04-18
 
 ### Added
