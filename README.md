@@ -6,20 +6,40 @@
 ![Coverage](https://img.shields.io/badge/coverage-80%25%2B-brightgreen)
 ![Code Style](https://img.shields.io/badge/code%20style-immutable-blueviolet)
 
-A Python library for pharmaceutical prescription volume trend analysis, multi-period forecasting, and chart-ready data preparation.
+A Python library for pharmaceutical prescription volume trend analysis,
+multi-period forecasting, seasonality decomposition, change-point and
+anomaly detection, and chart-ready data preparation.  Designed for
+honest, small-scale commercial analytics: every transformation is
+validated, fully typed, immutable, and covered by focused unit tests.
+
+## Scope (Honest)
+
+This library is an **analytical toolkit**, not a forecasting platform.
+It does not ship with a database layer, a dashboard, or a scheduler.
+It is intentionally limited to deterministic, interpretable pandas /
+NumPy / statsmodels transforms so every output can be audited by hand
+and reasoned about in a review setting.
 
 ## Features
 
-- Data ingestion from CSV and Excel files
-- Automated analysis and KPI calculation
-- Month-over-month (MoM) and year-over-year (YoY) growth calculation
+- Data ingestion from CSV and Excel files with schema validation
+- Month-over-month (MoM), year-over-year (YoY), and arbitrary-lag
+  period-over-period growth
+- **Moving Annual Total (MAT), MAT growth %, and MAT share %** — the
+  classic pharma rolling-12-month view (`src/mat.py`)
 - Market share computation per drug and time period
 - Rolling moving-average smoothing
 - Per-drug linear regression forecasting
-- Visualization-ready chart data preparation (trend lines, market share pie/donut)
-- Drug and region filtering helpers with date-range support
-- Comprehensive input validation and edge-case handling
-- Immutable transformation pipeline (no hidden side effects)
+- Classical seasonal decomposition (additive / multiplicative) via
+  statsmodels STL wrapper
+- Robust-z-score and Tukey-IQR anomaly flagging
+- Piecewise-linear trend change-point detection
+- Visualization-ready chart data preparation (trend lines, market
+  share pie/donut)
+- Drug, region, and date-range filtering helpers
+- Comprehensive input validation and edge-case handling (empty,
+  single-point, all-zero, missing-month, non-datetime index)
+- Immutable transformation pipeline — no hidden side effects
 
 ## Installation
 
@@ -29,43 +49,137 @@ cd prescription-trend-analyzer
 pip install -r requirements.txt
 ```
 
+Python 3.9+ is required.  The only heavy dependencies are pandas,
+NumPy, matplotlib (for charting), and statsmodels (for the seasonal
+decomposition wrapper).
+
 ## Quick Start
 
+The demo dataset at `demo/sample_data.csv` contains 72 rows — 3
+products (Atorvastatin/Cardiology, Metformin/Endocrinology,
+Amoxicillin/Anti-infective) across 24 months (Jan 2024 – Dec 2025).
+
 ```python
+import pandas as pd
 from src.main import RxTrendAnalyzer
+from src.mat import mat_growth, mat_share, moving_annual_total
 
+# Load the demo dataset directly (month is a proper date)
+df = pd.read_csv("demo/sample_data.csv", parse_dates=["month"])
+
+# 1) Moving Annual Total — rolling 12-month sum per product
+mat = moving_annual_total(
+    df,
+    value_col="rx_volume",
+    group_col="product",
+    date_col="month",
+)
+print(mat.tail(3)[["month", "product", "rx_volume", "rx_volume_mat12"]])
+
+# 2) MAT growth % — YoY change of MAT (classic pharma KPI)
+growth = mat_growth(
+    df,
+    value_col="rx_volume",
+    group_col="product",
+    date_col="month",
+)
+print(
+    growth.dropna(subset=["rx_volume_mat12_growth_pct"])[
+        ["month", "product", "rx_volume_mat12_growth_pct"]
+    ]
+)
+
+# 3) MAT share — each product's MAT as % of total MAT that month
+share = mat_share(
+    df,
+    value_col="rx_volume",
+    group_col="product",
+    date_col="month",
+)
+print(share.tail(3)[["month", "product", "rx_volume_mat12_share_pct"]])
+
+# 4) Descriptive summary via the RxTrendAnalyzer pipeline.
 analyzer = RxTrendAnalyzer()
-
-# Option 1 — full pipeline in one call
-result = analyzer.run("demo/sample_data.csv")
-print(result["total_records"])
-
-# Option 2 — step by step for more control
-df = analyzer.load_data("demo/sample_data.csv")
-analyzer.validate(df)
-df = analyzer.preprocess(df)
-
-# Month-over-month growth
-df_mom = analyzer.calculate_mom_growth(df)
-print(df_mom[["drug_name", "month", "prescriptions_count", "mom_growth_pct"]].head())
-
-# Year-over-year growth
-df_yoy = analyzer.calculate_yoy_growth(df)
-
-# Market share per time period
-df_share = analyzer.compute_market_share(df)
-
-# 3-month rolling moving average
-df_ma = analyzer.moving_average(df, window=3)
-
-# Linear regression forecast for the next 6 months
-df_forecast = analyzer.forecast(df, n_periods=6)
-
-# Filtering helpers
-lipitor_df  = analyzer.filter_by_drug(df, "Lipitor")
-south_df    = analyzer.filter_by_region(df, "South")
-window_df   = analyzer.filter_by_date_range(df, 2024, 1, 2024, 6)
+summary = analyzer.run("demo/sample_data.csv")
+print(summary["total_records"])  # 72
 ```
+
+> **Note on column shapes.**  The MAT helpers accept any sortable
+> `date_col` (dates, strings, integers).  The legacy `RxTrendAnalyzer`
+> pipeline, on the other hand, expects a *numeric* `month` column
+> (1-12) and a separate `year` column — `demo/sample_data.csv` ships
+> both shapes so everything works out of the box.  To forecast with
+> the legacy pipeline, load the CSV without date-parsing:
+>
+> ```python
+> raw = analyzer.load_data("demo/sample_data.csv")
+> analyzer.validate(raw)
+> # drop the date-string `month` so preprocess() does not try to
+> # coerce it — the back-compat numeric month lives elsewhere:
+> pre = analyzer.preprocess(raw.drop(columns=["month"]).rename(
+>     columns={"year": "year"}
+> ).assign(month=pd.to_datetime(raw["month"]).dt.month))
+> forecast_df = analyzer.forecast(pre, n_periods=6)
+> ```
+
+Additional helpers on `RxTrendAnalyzer` include
+`calculate_mom_growth`, `calculate_yoy_growth`, `compute_market_share`,
+`moving_average`, `prepare_trend_chart_data`,
+`prepare_market_share_chart_data`, `summary_by_drug`, and the
+filtering helpers `filter_by_drug`, `filter_by_region`, and
+`filter_by_date_range`.
+
+## New: Moving Annual Total (MAT)
+
+`src/mat.py` implements the canonical pharma *Moving Annual Total* — the
+trailing 12-month sum — plus its two sibling KPIs used on every
+commercial dashboard:
+
+| Helper | Output | Typical Use |
+|---|---|---|
+| `moving_annual_total(df, …)` | `{value}_mat{W}` | Smoothed annualised view of a brand's volume |
+| `mat_growth(df, …)`          | `{value}_mat{W}_growth_pct` | Year-over-year % change of MAT |
+| `mat_share(df, …)`           | `{value}_mat{W}_share_pct`  | Each brand's MAT as a % of total MAT per date |
+
+All three helpers are immutable, fully validated, and handle the
+standard edge cases honestly:
+
+- **Single data point** — returns `NaN` unless `min_periods=1` is
+  requested (then the partial sum is emitted).
+- **Missing months / calendar gaps** — the window is *positional*
+  (12 observations, not 12 calendar months).  The docstring makes
+  this explicit so callers know to reindex to a complete monthly
+  grid first if they need strict calendar semantics.
+- **All-zero volumes** — MAT returns `0.0` (not `NaN`).  MAT growth
+  returns `NaN` when the lagged MAT is zero (division guard).
+- **Non-datetime index** — any sortable `date_col` is accepted
+  (including ISO-formatted strings).
+- **Empty DataFrame** — raises `MATError` immediately with a clear
+  message.
+
+### Example
+
+```python
+import pandas as pd
+from src.mat import moving_annual_total, mat_growth, mat_share
+
+df = pd.read_csv("demo/sample_data.csv", parse_dates=["month"])
+
+mat     = moving_annual_total(df, "rx_volume", "product", "month")
+grow    = mat_growth(df,           "rx_volume", "product", "month")
+shares  = mat_share(df,            "rx_volume", "product", "month")
+
+# Latest MAT snapshot across all products:
+latest = shares["month"].max()
+print(shares[shares["month"] == latest]
+        .loc[:, ["product", "rx_volume_mat12", "rx_volume_mat12_share_pct"]])
+```
+
+Tuning:
+
+- `window=4` for a rolling *quarterly* total.
+- `min_periods=1` to emit partial sums before the first full window.
+- `output_col="my_name"` to rename the generated column.
 
 ## New: Anomaly Detector
 
@@ -318,17 +432,22 @@ Running `analyzer.run("demo/sample_data.csv")` produces a dictionary similar to:
 
 ## Sample Data
 
-A ready-to-use demo dataset lives at `demo/sample_data.csv` (54 rows, 3 drugs across 18 months — Jan 2024 to Jun 2025).
+A ready-to-use demo dataset lives at `demo/sample_data.csv` (72 rows —
+3 products across 24 months, Jan 2024 to Dec 2025).
 
 | Column | Description |
 |---|---|
-| `date` | First day of the observation month (YYYY-MM-DD) |
-| `product_name` | Brand name of the drug |
-| `therapeutic_area` | Drug class (e.g. Cardiovascular, Endocrinology) |
-| `region` | Geographic region |
-| `prescription_volume` | Total prescription count for the month |
-| `market_share_pct` | Market share percentage within therapeutic area |
-| `physician_count` | Number of prescribing physicians |
+| `month` | First day of the observation month (YYYY-MM-DD) |
+| `product` | Generic name of the molecule (e.g. `Atorvastatin`) |
+| `therapeutic_area` | Drug class (e.g. `Cardiology`, `Endocrinology`, `Anti-infective`) |
+| `rx_volume` | Total prescription count for the product in the month |
+| `market_volume` | Total prescriptions across the whole market (denominator for share) |
+| `channel` | Dispensing channel (e.g. `Retail`, `Hospital`) |
+| `drug_name`, `year`, `prescriptions_count` | Back-compat aliases so the legacy `RxTrendAnalyzer` pipeline works unchanged |
+
+The trend is a slight monthly upward drift with realistic pharma ratios
+between products.  Useful for demonstrating MAT growth (+15-21% YoY at
+Dec 2025), share dynamics, and forecasting without requiring real PHI.
 
 ### Generating Larger Synthetic Data
 
@@ -345,17 +464,23 @@ df.to_csv("data/synthetic_300.csv", index=False)
 prescription-trend-analyzer/
 ├── src/
 │   ├── __init__.py
-│   ├── main.py                 # Core analysis, forecasting, and viz-prep logic
+│   ├── main.py                 # Core analysis, forecasting, viz-prep
+│   ├── mat.py                  # Moving Annual Total, MAT growth, MAT share
+│   ├── seasonality.py          # STL decomposition + PoP growth helpers
 │   ├── anomaly_detector.py     # Robust z-score / IQR anomaly flagging
 │   ├── changepoint_detector.py # Piecewise-linear trend change-point detector
 │   └── data_generator.py       # Synthetic data generator
 ├── tests/
 │   ├── __init__.py
-│   ├── test_analyzer.py    # Validation, preprocessing, growth, market share, MA
-│   ├── test_forecasting.py # Forecasting and calendar-arithmetic helpers
-│   └── test_visualization.py # Chart data prep, summary, date-range filtering
+│   ├── test_analyzer.py           # Validation, preprocessing, growth, share, MA
+│   ├── test_forecasting.py        # Forecasting and calendar-arithmetic helpers
+│   ├── test_visualization.py      # Chart data prep, summary, date-range filtering
+│   ├── test_mat.py                # Moving Annual Total, MAT growth, MAT share
+│   ├── test_seasonality.py        # Decomposition + period-over-period growth
+│   ├── test_anomaly_detector.py   # Anomaly flagging
+│   └── test_changepoint_detector.py # Trend change-point detection
 ├── demo/
-│   └── sample_data.csv     # 54-row demo dataset (18 months, 3 drugs)
+│   └── sample_data.csv     # 72-row demo dataset (24 months, 3 products)
 ├── examples/
 │   └── basic_usage.py      # Runnable usage example
 ├── data/                   # Data directory (gitignored for real data)
@@ -389,6 +514,8 @@ All tests are organized into focused modules:
 | `test_visualization.py` | Trend chart data prep, market share chart data, `summary_by_drug()`, date-range filtering |
 | `test_anomaly_detector.py` | Spike detection, immutability, determinism, flat/zero/short series, multi-drug grouping, all method variants |
 | `test_changepoint_detector.py` | Piecewise-linear break detection, perfectly linear series, NaN handling, non-monotonic dates, multi-group grouping, validation guards |
+| `test_seasonality.py` | STL decomposition, NaN handling, period validation, PoP growth aliases, immutability, multi-group isolation |
+| `test_mat.py` | MAT rolling sums with known inputs, MAT growth YoY, MAT share sums to 100%, single-point / all-zero / calendar-gap / non-datetime / empty edge cases |
 
 ## License
 

@@ -4,6 +4,44 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] - 2026-04-20
+
+### Added
+- **Moving Annual Total module** (`src/mat.py`) with three public helpers:
+  - `moving_annual_total` - rolling-sum over a configurable window
+    (default 12) with optional grouping and chronological sorting by
+    an arbitrary sortable date column.  Default `min_periods=window`
+    emits `NaN` until the window is full; `min_periods=1` enables
+    partial sums for early rows.
+  - `mat_growth` - MAT plus its year-over-year percentage change
+    (the canonical "MAT growth %" pharma KPI).  Rows whose lagged
+    MAT is zero or missing receive `NaN`.
+  - `mat_share` - each group's MAT as a share of the total MAT per
+    date, always between 0 and 100 and summing to 100 within a
+    fully-populated date.
+  - `MATError` custom exception for all validation failures.
+  - Full immutability: the caller's DataFrame is never mutated.
+  - Honest edge-case handling for single-point series, all-zero
+    volumes, calendar gaps, non-datetime index columns, and empty
+    inputs.
+- **`tests/test_mat.py`**: 29 pytest cases covering MAT rolling math
+  against closed-form inputs, MAT growth flat/doubling scenarios,
+  MAT share proportionality + summation-to-100 invariant, every
+  validation guard, immutability contract, group isolation, and all
+  the edge cases above.
+- **`demo/sample_data.csv`** replaced with a 72-row, 24-month,
+  3-product dataset exposing the schema requested by downstream
+  consumers (`month`, `product`, `therapeutic_area`, `rx_volume`,
+  `market_volume`, `channel`) plus back-compat aliases
+  (`drug_name`, `year`, `prescriptions_count`) so the legacy
+  `RxTrendAnalyzer` pipeline and all existing tests keep working.
+- README: new "Moving Annual Total (MAT)" section, honest scope
+  statement, updated quick-start that demonstrates MAT / MAT growth
+  / MAT share against the demo dataset, and refreshed project-
+  structure + test-matrix tables.
+- Re-exported the new public API (`moving_annual_total`,
+  `mat_growth`, `mat_share`, `MATError`) from `src/__init__.py`.
+
 ## [Unreleased] - 2026-04-19
 
 ### Added
